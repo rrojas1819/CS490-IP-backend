@@ -12,6 +12,19 @@ order by rented desc,f.title limit 5`;
       callback(null, results);
     });
   }
+
+  static getTop5Actors(callback){
+    const query = `select a.actor_id,a.first_name,a.last_name,count(f.film_id) as movies from actor as a, film_actor as fa, film as f where
+a.actor_id = fa.actor_id and f.film_id = fa.film_id
+GROUP BY a.actor_id
+ORDER BY movies desc;`;
+
+    db.query(query, (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  }
+
 }
 
 module.exports = Film;

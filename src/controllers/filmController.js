@@ -8,6 +8,12 @@ class FilmController {
 
     });
   }
+  static getTop5Actors(req, res) {
+    Film.getTop5Actors((err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json(results);
+    });
+  }
 }
 
 module.exports = FilmController;
