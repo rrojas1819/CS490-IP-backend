@@ -5,11 +5,10 @@ class FilmController {
     Film.getTop5RentedFilmsAndInfo((err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json(results);
-
     });
   }
-  static getTop5Actors(req, res) {
-    Film.getTop5Actors((err, results) => {
+  static getTop5ActorsAndInfo(req, res) {
+    Film.getTop5ActorsAndInfo((err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json(results);
     });
