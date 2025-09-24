@@ -1,6 +1,8 @@
 const db = require('../config/db');
 
 class Film {
+
+  /*Going to assume I don't need actors but I might add that info later!*/
   static getTop5RentedFilmsAndInfo(callback){
     const query = `select f.*  from rental as r, inventory as i,film as f, film_category as fc,category as c where
 r.inventory_id = i.inventory_id and f.film_id = i.film_id and f.film_id = fc.film_id and fc.category_id = c.category_id
