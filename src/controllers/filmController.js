@@ -7,8 +7,16 @@ class FilmController {
       res.status(200).json(results);
     });
   }
-  static getTop5ActorsAndInfo(req, res) {
-    Film.getTop5ActorsAndInfo((err, results) => {
+
+  static searchFilmsByMovieTitle(req, res) {
+    const { title } = req.query;
+    
+    if (!title) {
+      return res.status(400).json({ error: 'Title parameter is required' });
+    }
+    
+    
+    Film.searchFilmsByMovieTitle(title, (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json(results);
     });

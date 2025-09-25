@@ -35,7 +35,13 @@ order by count(i.film_id) desc,f.title limit 5;`;
     });
   }
 
-  
+  static searchFilmsByMovieTitle(param, callback){
+    const query = `SELECT f.film_id, f.title, f.release_year FROM film as f WHERE title LIKE CONCAT('%', ?, '%')`; //Concat so it provides a security against sql injection when concatting the % to the param.
+    db.query(query, param, (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  }
 
 }
 
