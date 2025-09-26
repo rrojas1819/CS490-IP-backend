@@ -21,6 +21,13 @@ class FilmController {
       res.status(200).json(results);
     });
   }
+  static getFilmsByGenre(req, res) {
+    const { genre } = req.query;
+    Film.getFilmsByGenre(genre, (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json(results);
+    });
+  }
 }
 
 module.exports = FilmController;

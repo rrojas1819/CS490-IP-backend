@@ -62,5 +62,14 @@ class Actor {
           });
         });
       }
+      static getFilmsByActorName(param, callback){
+        const query = `SELECT f.film_id, f.title, f.release_year, a.actor_id,a.first_name,a.last_name FROM film as f, actor as a, film_actor as fa
+    WHERE f.film_id = fa.film_id and fa.actor_id = a.actor_id and (first_name like CONCAT('%', ?, '%') or last_name like CONCAT('%', ?, '%'))`
+        db.query(query, [param, param], (err, results) => {
+          if (err) return callback(err);
+          callback(null, results);
+        });
+      }
+      
 }
 module.exports = Actor;

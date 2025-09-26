@@ -42,6 +42,15 @@ order by count(i.film_id) desc,f.title limit 5;`;
       callback(null, results);
     });
   }
+  static getFilmsByGenre(param, callback){
+    const query = `SELECT f.film_id, f.title, f.release_year,c.name FROM film as f,category as c, film_category as fc 
+WHERE f.film_id =  fc.film_id and fc.category_id = c.category_id and c.name like CONCAT('%', ?, '%')`
+    db.query(query, param, (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  }
+
 
 }
 
