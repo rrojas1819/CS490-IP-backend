@@ -13,6 +13,9 @@ db.connect((err) => {
 app.get('/api', (req, res) => {
   res.send('Sakila Movies General API');
 });
+
+
+
 //Connect the filmRoutes!
 app.use('/api/films', filmRoutes);
 app.use('/api/actors', actorRoutes);
