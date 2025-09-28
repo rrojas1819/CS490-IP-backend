@@ -90,6 +90,32 @@ WHERE f.film_id =  fc.film_id and fc.category_id = c.category_id and c.name like
     });
   }
 
+  static getGroupFilmsByGenre(param,callback){
+      const query =`SELECT f.film_id, f.title, f.release_year, c.name AS genre  FROM category c, film f
+    WHERE EXISTS (
+      SELECT 1
+      FROM film_category fc
+      WHERE fc.film_id = f.film_id
+        AND fc.category_id = c.category_id
+    )
+    AND (
+      SELECT COUNT(*)
+      FROM film f2
+      WHERE f2.film_id <= f.film_id
+        AND EXISTS (
+          SELECT 1
+          FROM film_category fc2
+          WHERE fc2.film_id = f2.film_id
+            AND fc2.category_id = c.category_id
+        )
+    ) <= 11
+    ORDER BY genre, film_id;
+`
+db.query(query, param, (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  }
 
 }
 

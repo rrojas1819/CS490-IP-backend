@@ -7,7 +7,13 @@ class FilmController {
       res.status(200).json(results);
     });
   }
-
+  static getGroupFilmsByGenre(req, res) {
+    Film.getGroupFilmsByGenre((err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json(results);
+    });
+  }
+  
   static searchFilmsByMovieTitle(req, res) {
     const { title } = req.query;
     

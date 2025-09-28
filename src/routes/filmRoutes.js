@@ -6,4 +6,5 @@ router.get('/top5rentedfilms', FilmController.getTop5RentedFilmsAndInfo);
 router.get('/search/filmsbytitle', FilmController.searchFilmsByMovieTitle);
 router.get('/search/filmsbygenre', FilmController.getFilmsByGenre);
 router.get('/filmdetails', FilmController.getFilmDetails);
+router.get('/filmgroupgenre', FilmController.getGroupFilmsByGenre);
 module.exports = router;
