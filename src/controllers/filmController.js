@@ -24,6 +24,9 @@ class FilmController {
   
   static getFilmsByGenre(req, res) {
     const { genre } = req.query;
+    if (!genre) {
+      return res.status(400).json({ error: 'Genre parameter is required' });
+    }
     Film.getFilmsByGenre(genre, (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.status(200).json(results);
