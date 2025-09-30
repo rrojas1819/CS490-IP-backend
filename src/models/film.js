@@ -52,9 +52,14 @@ WHERE f.film_id =  fc.film_id and fc.category_id = c.category_id and c.name like
   }
 
   static getFilmDetails(param, callback){
-    const query = `SELECT f.*, c.name as genre 
-                   FROM film as f, category as c, film_category as fc 
-                   WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.film_id = ?`;
+    const query = `SELECT f.*, c.name as genre,
+                          COUNT(DISTINCT i.inventory_id) as total_copies,
+                          COUNT(DISTINCT CASE WHEN r.return_date IS NULL THEN r.inventory_id END) as rented_copies,
+                          COUNT(DISTINCT i.inventory_id) - COUNT(DISTINCT CASE WHEN r.return_date IS NULL THEN r.inventory_id END) as available_copies
+                   FROM film as f, category as c, film_category as fc, inventory as i
+                   LEFT JOIN rental r ON i.inventory_id = r.inventory_id
+                   WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.film_id = i.film_id AND f.film_id = ?
+                   GROUP BY f.film_id, c.name`;
     
     db.query(query, param, (err, results) => {
       if (err) return callback(err);
@@ -73,15 +78,7 @@ WHERE f.film_id =  fc.film_id and fc.category_id = c.category_id and c.name like
         if (err) return callback(err);
         
         const filmWithActors = {
-          film_id: film.film_id,
-          title: film.title,
-          description: film.description,
-          release_year: film.release_year,
-          rating: film.rating,
-          length: film.length,
-          replacement_cost: film.replacement_cost,
-          special_features: film.special_features,
-          genre: film.genre,
+          ...film,
           actors: actors
         };
         
