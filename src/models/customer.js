@@ -78,5 +78,18 @@ class Customer {
             throw error;
         }
     }
+    static async getAllCustomers(){
+        const query = `SELECT 
+            c.*,
+            a.*,
+            ci.city,
+            co.country
+        FROM customer c
+        LEFT JOIN address a ON c.address_id = a.address_id
+        LEFT JOIN city ci ON a.city_id = ci.city_id
+        LEFT JOIN country co ON ci.country_id = co.country_id;`;
+        const [result] = await db.promise().query(query);
+        return result;
+    }
 }
 module.exports = Customer;

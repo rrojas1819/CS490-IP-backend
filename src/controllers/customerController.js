@@ -38,6 +38,14 @@ class CustomerController {
             res.status(500).json({ error: error.message });
         }
     }
+    static async getAllCustomers(req, res) {
+        try {
+            const results = await Customer.getAllCustomers();
+            res.status(200).json(results);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = CustomerController;
