@@ -5,5 +5,6 @@ const CustomerController = require('../controllers/customerController');
 router.post('/rentfilm', CustomerController.rentFilm);
 router.put('/returnfilm', CustomerController.returnFilm);
 router.get('/allcustomers', CustomerController.getAllCustomers);
+router.get('/searchparam', CustomerController.searchCustomersByParam);
 
 module.exports = router;

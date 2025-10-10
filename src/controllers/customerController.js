@@ -46,6 +46,19 @@ class CustomerController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static searchCustomersByParam(req, res) {
+        const { param } = req.query;
+        
+        if (!param) {
+            return res.status(400).json({ error: 'param parameter is required' });
+        }
+        
+        Customer.searchCustomersByParam(param, (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.status(200).json(results);
+        });
+    }
 }
 
 module.exports = CustomerController;
