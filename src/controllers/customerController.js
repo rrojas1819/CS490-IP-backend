@@ -13,7 +13,7 @@ class CustomerController {
 
        try{
         const results = await Customer.rentFilm(film_id,customer_id);
-        res.status(200).json(results);
+        res.status(201).json(results);
        }catch(error){
         res.status(500).json({ error: error.message });
        }
@@ -58,6 +58,22 @@ class CustomerController {
             if (err) return res.status(500).json({ error: err.message });
             res.status(200).json(results);
         });
+    }
+
+    static async addCustomer(req, res) {
+        try {
+            const customerData = req.body;
+            
+            
+            if (!customerData || Object.keys(customerData).length === 0) {
+                return res.status(400).json({ error: 'Request body is required' });
+            }
+
+            const result = await Customer.addCustomer(customerData);
+            res.status(201).json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
 }
 

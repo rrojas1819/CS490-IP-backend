@@ -1,7 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const port = 3000; 
+const port = 3000;
+
+app.use(express.json()); //Parse JSON
+
 const db = require('./config/db');
 const filmRoutes = require('./routes/filmRoutes');
 const actorRoutes = require('./routes/actorRoutes');
