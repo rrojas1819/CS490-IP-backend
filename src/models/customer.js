@@ -7,6 +7,16 @@ class Customer {
     returning a film means update. --> put request 
     */
 
+    static validateEmail(email) {
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|eu|edu|email|net)$/i
+        return emailPattern.test(email)
+    }
+
+    static validatePhone(phone) {
+        const phonePattern = /^(\+1\s?)?(\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{4})$/
+        return phonePattern.test(phone)
+    }
+
     /*Finished but it was so nested and ugly I looked to see what I could do to get rid of the nested calls, remembered about async and await*/
     static async rentFilm(film_id,customer_id){
         try {
@@ -129,29 +139,24 @@ class Customer {
                 phone
             } = customerData;
 
-            let finalEmail = email;
-            if (!finalEmail) {
-                finalEmail = `${first_name}.${last_name}@sakilacustomer.org`;
-                
-                let emailExists = true;
-                let counter = 1;
-                let baseLastName = last_name;
-                
-                while (emailExists) {
-                    const emailCheckQuery = `SELECT customer_id FROM customer WHERE email = ?`;
-                    const [emailResult] = await db.promise().query(emailCheckQuery, [finalEmail]);
-                    
-                    if (emailResult.length === 0) {
-                        emailExists = false;
-                    } else {
-                        finalEmail = `${first_name}.${baseLastName}${counter}@sakilacustomer.org`;
-                        counter++;
-                    }
-                }
+            if (!first_name || !last_name || !email) {
+                throw new Error('Missing required fields: first_name, last_name, and email are required');
             }
+
+            if (!this.validateEmail(email)) {
+                throw new Error('Email must be in format: user@domain.com (domains: com, org, eu, edu, email, net)');
+            }
+
+            if (phone && !this.validatePhone(phone)) {
+                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +1 555 123 4567');
+            }
+
+            // Check if email already exists
+            const emailCheckQuery = `SELECT customer_id FROM customer WHERE email = ?`;
+            const [emailResult] = await db.promise().query(emailCheckQuery, [email]);
             
-            if (!first_name || !last_name) {
-                throw new Error('Missing required fields: first_name and last_name are required');
+            if (emailResult.length > 0) {
+                throw new Error('Email already exists. Please use a different email address. Or sign in with that email.');
             }
 
             if (!address || !city || !country) {
@@ -209,7 +214,7 @@ class Customer {
                 1, // store_id = 1
                 first_name, 
                 last_name, 
-                finalEmail, 
+                email, 
                 address_id, 
                 activeValue, 
                 create_date, 
@@ -223,7 +228,7 @@ class Customer {
                     store_id: 1,
                     first_name,
                     last_name,
-                    email: finalEmail,
+                    email: email,
                     address_id,
                     active: activeValue,
                     create_date,
@@ -240,11 +245,11 @@ class Customer {
 */
             return {
                 customer_id: customerResult.insertId,
-                email: finalEmail,
+                email: email,
                 message: 'Customer created successfully',
                 customer: {
                     customer_id: customerResult.insertId,
-                    email: finalEmail
+                    email: email
                 }
             };
 
@@ -281,6 +286,23 @@ class Customer {
             }
 
             const existingAddressId = customerResult[0].address_id;
+
+            if (email) {
+                if (!this.validateEmail(email)) {
+                    throw new Error('Email must be in format: user@domain.com (domains: com, org, eu, edu, email, net)');
+                }
+
+                const emailCheckQuery = `SELECT customer_id FROM customer WHERE email = ? AND customer_id != ?`;
+                const [emailResult] = await db.promise().query(emailCheckQuery, [email, customer_id]);
+                
+                if (emailResult.length > 0) {
+                    throw new Error('Email already exists. Please use a different email address. Or sign in with that email.');
+                }
+            }
+
+            if (phone && !this.validatePhone(phone)) {
+                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +1 555 123 4567');
+            }
 
             if (first_name || last_name || email || active !== undefined) {
                 const updateCustomerQuery = `UPDATE customer SET 
