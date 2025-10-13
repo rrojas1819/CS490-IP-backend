@@ -362,5 +362,48 @@ class Customer {
             throw error;
         }
     }
+
+    static async deleteCustomer(customer_id) {
+        try {
+            if (!customer_id) {
+                throw new Error('Customer ID is required');
+            }
+
+            const checkQuery = `SELECT customer_id, address_id FROM customer WHERE customer_id = ?`;
+            const [existing] = await db.promise().query(checkQuery, [customer_id]);
+            if (existing.length === 0) {
+                throw new Error('Customer not found');
+            }
+            const address_id = existing[0].address_id;
+
+            const deleteQuery = `DELETE FROM customer WHERE customer_id = ?`;
+            const [result] = await db.promise().query(deleteQuery, [customer_id]);
+
+            let addressDeleted = false;
+            if (address_id) {
+                const countQuery = `SELECT COUNT(*) AS cnt FROM customer WHERE address_id = ?`;
+                const [countRows] = await db.promise().query(countQuery, [address_id]);
+                const remaining = countRows && countRows[0] ? countRows[0].cnt : 0;
+                if (remaining === 0) {
+                    try {
+                        const deleteAddressQuery = `DELETE FROM address WHERE address_id = ?`;
+                        const [addrResult] = await db.promise().query(deleteAddressQuery, [address_id]);
+                        addressDeleted = addrResult.affectedRows > 0;
+                    } catch (e) {
+                        addressDeleted = false;
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                deletedRows: result.affectedRows,
+                addressDeleted,
+                message: 'Customer deleted successfully'
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 module.exports = Customer;
