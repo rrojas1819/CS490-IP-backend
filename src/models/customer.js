@@ -240,10 +240,122 @@ class Customer {
 */
             return {
                 customer_id: customerResult.insertId,
+                email: finalEmail,
                 message: 'Customer created successfully',
                 customer: {
                     customer_id: customerResult.insertId,
+                    email: finalEmail
                 }
+            };
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async updateCustomer(customer_id, customerData) {
+        try {
+            const { 
+                first_name, 
+                last_name, 
+                email, 
+                active,
+                address,
+                address2,
+                district,
+                city,
+                country,
+                postal_code,
+                phone
+            } = customerData;
+
+            if (!customer_id) {
+                throw new Error('Customer ID is required');
+            }
+
+            const customerCheckQuery = `SELECT customer_id, address_id FROM customer WHERE customer_id = ?`;
+            const [customerResult] = await db.promise().query(customerCheckQuery, [customer_id]);
+            
+            if (customerResult.length === 0) {
+                throw new Error('Customer not found');
+            }
+
+            const existingAddressId = customerResult[0].address_id;
+
+            if (first_name || last_name || email || active !== undefined) {
+                const updateCustomerQuery = `UPDATE customer SET 
+                    first_name = COALESCE(?, first_name),
+                    last_name = COALESCE(?, last_name),
+                    email = COALESCE(?, email),
+                    active = COALESCE(?, active),
+                    last_update = NOW()
+                    WHERE customer_id = ?`;
+                
+                await db.promise().query(updateCustomerQuery, [
+                    first_name,
+                    last_name,
+                    email,
+                    active !== undefined ? active : null,
+                    customer_id
+                ]);
+            }
+
+            if (address || city || country || address2 || district || postal_code || phone) {
+                if (!address || !city || !country) {
+                    throw new Error('When updating address, address, city, and country are required');
+                }
+
+                let country_id;
+                const countryQuery = `SELECT country_id FROM country WHERE country = ?`;
+                const [countryResult] = await db.promise().query(countryQuery, [country]);
+                
+                if (countryResult.length === 0) {
+                    const insertCountryQuery = `INSERT INTO country (country, last_update) VALUES (?, NOW())`;
+                    const [countryInsertResult] = await db.promise().query(insertCountryQuery, [country]);
+                    country_id = countryInsertResult.insertId;
+                } else {
+                    country_id = countryResult[0].country_id;
+                }
+                
+                let city_id;
+                const cityQuery = `SELECT city_id FROM city WHERE city = ? AND country_id = ?`;
+                const [cityResult] = await db.promise().query(cityQuery, [city, country_id]);
+                
+                if (cityResult.length === 0) {
+                    const insertCityQuery = `INSERT INTO city (city, country_id, last_update) VALUES (?, ?, NOW())`;
+                    const [cityInsertResult] = await db.promise().query(insertCityQuery, [city, country_id]);
+                    city_id = cityInsertResult.insertId;
+                } else {
+                    city_id = cityResult[0].city_id;
+                }
+
+                const locationValue = 'POINT(0 0)';
+                const updateAddressQuery = `UPDATE address SET 
+                    address = COALESCE(?, address),
+                    address2 = COALESCE(?, address2),
+                    district = COALESCE(?, district),
+                    city_id = COALESCE(?, city_id),
+                    postal_code = COALESCE(?, postal_code),
+                    phone = COALESCE(?, phone),
+                    location = ST_GeomFromText(?),
+                    last_update = NOW()
+                    WHERE address_id = ?`;
+                
+                await db.promise().query(updateAddressQuery, [
+                    address,
+                    address2,
+                    district,
+                    city_id,
+                    postal_code,
+                    phone,
+                    locationValue,
+                    existingAddressId
+                ]);
+            }
+            
+            return {
+                customer_id: customer_id,
+                message: 'Customer updated successfully'
             };
 
         } catch (error) {

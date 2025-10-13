@@ -75,6 +75,26 @@ class CustomerController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async updateCustomer(req, res) {
+        try {
+            const customer_id = req.params.id;
+            const customerData = req.body;
+            
+            if (!customer_id) {
+                return res.status(400).json({ error: 'Customer ID is required' });
+            }
+
+            if (!customerData || Object.keys(customerData).length === 0) {
+                return res.status(400).json({ error: 'Request body is required' });
+            }
+
+            const result = await Customer.updateCustomer(customer_id, customerData);
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = CustomerController;
