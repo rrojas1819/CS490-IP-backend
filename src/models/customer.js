@@ -398,6 +398,18 @@ class Customer {
             }
             const address_id = existing[0].address_id;
 
+            const currentRentalsQuery = `SELECT COUNT(*) AS current_rentals FROM rental WHERE customer_id = ? AND return_date IS NULL`;
+            const [currentRentalsResult] = await db.promise().query(currentRentalsQuery, [customer_id]);
+            const currentRentals = currentRentalsResult[0].current_rentals;
+
+            if (currentRentals > 0) {
+                throw new Error(`Cannot delete customer. Customer has ${currentRentals} current rental(s) that must be returned first.`);
+            }
+
+            const deleteRentalsQuery = `DELETE FROM rental WHERE customer_id = ?`;
+            const [rentalResult] = await db.promise().query(deleteRentalsQuery, [customer_id]);
+            const deletedRentals = rentalResult.affectedRows;
+
             const deleteQuery = `DELETE FROM customer WHERE customer_id = ?`;
             const [result] = await db.promise().query(deleteQuery, [customer_id]);
 
@@ -420,8 +432,9 @@ class Customer {
             return {
                 success: true,
                 deletedRows: result.affectedRows,
+                deletedRentals: deletedRentals,
                 addressDeleted,
-                message: 'Customer deleted successfully'
+                message: `Customer and ${deletedRentals} rental record(s) deleted successfully`
             };
         } catch (error) {
             throw error;
@@ -445,6 +458,7 @@ class Customer {
                 r.rental_id,
                 r.rental_date,
                 r.return_date,
+                r.inventory_id,
                 f.*
             FROM rental r
             JOIN inventory i ON r.inventory_id = i.inventory_id

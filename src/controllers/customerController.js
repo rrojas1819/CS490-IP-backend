@@ -109,6 +109,9 @@ class CustomerController {
             if (error.message === 'Customer not found') {
                 return res.status(404).json({ error: error.message });
             }
+            if (error.message.includes('current rental(s) that must be returned first')) {
+                return res.status(409).json({ error: error.message }); 
+            }
             res.status(500).json({ error: error.message });
         }
     }
