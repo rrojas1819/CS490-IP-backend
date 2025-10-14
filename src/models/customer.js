@@ -8,12 +8,12 @@ class Customer {
     */
 
     static validateEmail(email) {
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|eu|edu|email|net)$/i
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+(?:com|org|eu|edu|email|net)$/i
         return emailPattern.test(email)
     }
 
     static validatePhone(phone) {
-        const phonePattern = /^(\+1\s?)?(\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{4})$/
+        const phonePattern = /^(\+\d{1,3}\s?)?(?:\([0-9]{3}\)|[0-9]{3})[\s\-]?[0-9]{3}[\s\-]?[0-9]{4}$/
         return phonePattern.test(phone)
     }
 
@@ -148,7 +148,7 @@ class Customer {
             }
 
             if (phone && !this.validatePhone(phone)) {
-                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +1 555 123 4567');
+                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +<country code> (555) 123-4567');
             }
 
             // Check if email already exists
@@ -301,7 +301,7 @@ class Customer {
             }
 
             if (phone && !this.validatePhone(phone)) {
-                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +1 555 123 4567');
+                throw new Error('Phone number must be in format: 5551234567, (555) 123-4567, or +<country code> (555) 123-4567');
             }
 
             if (first_name || last_name || email || active !== undefined) {
