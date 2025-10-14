@@ -112,6 +112,24 @@ class CustomerController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async getRentalHistory(req, res) {
+        try {
+            const customer_id = req.params.id;
+            
+            if (!customer_id) {
+                return res.status(400).json({ error: 'Customer ID is required' });
+            }
+
+            const result = await Customer.getRentalHistory(customer_id);
+            res.status(200).json(result);
+        } catch (error) {
+            if (error.message === 'Customer not found') {
+                return res.status(404).json({ error: error.message });
+            }
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = CustomerController;

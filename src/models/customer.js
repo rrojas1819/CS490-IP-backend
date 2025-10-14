@@ -427,5 +427,61 @@ class Customer {
             throw error;
         }
     }
+
+    static async getRentalHistory(customer_id) {
+        try {
+            if (!customer_id) {
+                throw new Error('Customer ID is required');
+            }
+
+            const customerCheckQuery = `SELECT customer_id FROM customer WHERE customer_id = ?`;
+            const [customerResult] = await db.promise().query(customerCheckQuery, [customer_id]);
+            
+            if (customerResult.length === 0) {
+                throw new Error('Customer not found');
+            }
+
+            const query = `SELECT 
+                r.rental_id,
+                r.rental_date,
+                r.return_date,
+                f.*
+            FROM rental r
+            JOIN inventory i ON r.inventory_id = i.inventory_id
+            JOIN film f ON i.film_id = f.film_id
+            WHERE r.customer_id = ?
+            ORDER BY r.rental_date DESC`;
+
+            const [rentals] = await db.promise().query(query, [customer_id]);
+
+            const rentalsWithStatus = rentals.map(rental => {
+                const rentalDate = new Date(rental.rental_date);
+                const returnDate = rental.return_date ? new Date(rental.return_date) : new Date();
+                const daysRented = Math.floor((returnDate - rentalDate) / (1000 * 60 * 60 * 24));
+                
+                return {
+                    ...rental,
+                    rental_status: rental.return_date === null ? 'Currently Rented' : 'Returned',
+                    days_rented: daysRented
+                };
+            });
+
+            const currentRentals = rentalsWithStatus.filter(rental => rental.return_date === null);
+            const pastRentals = rentalsWithStatus.filter(rental => rental.return_date !== null);
+
+            return {
+                customer_id: customer_id,
+                total_rentals: rentalsWithStatus.length,
+                current_rentals: currentRentals.length,
+                past_rentals: pastRentals.length,
+                current_rentals_list: currentRentals,
+                past_rentals_list: pastRentals,
+                all_rentals: rentalsWithStatus
+            };
+
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 module.exports = Customer;
